@@ -1,10 +1,6 @@
 import { Response } from 'express';
-import mongoose from 'mongoose';
 import Expense from '../models/Expense';
-import { AuthRequest } from '../middleware/auth';
-
-const getUserId = (req: AuthRequest): mongoose.Types.ObjectId =>
-  new mongoose.Types.ObjectId(req.userId as string);
+import { AuthRequest, getUserId } from '../middleware/auth';
 
 // Get all expenses with optional filtering
 export const getExpenses = async (req: AuthRequest, res: Response): Promise<void> => {

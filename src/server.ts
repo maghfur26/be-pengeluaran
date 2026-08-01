@@ -4,6 +4,9 @@ import dotenv from 'dotenv';
 import connectDB from './config/database';
 import authRoutes from './routes/authRoutes';
 import expenseRoutes from './routes/expenseRoutes';
+import incomeRoutes from './routes/incomeRoutes';
+import adminRoutes from './routes/adminRoutes';
+import { ensureAdmin } from './config/seedAdmin';
 
 dotenv.config();
 
@@ -30,6 +33,7 @@ app.use(express.json());
 app.use(async (req, res, next) => {
   try {
     await connectDB();
+    await ensureAdmin();
     next();
   } catch (error) {
     console.error(error);
@@ -44,6 +48,9 @@ app.use(async (req, res, next) => {
 app.use('/api/auth', authRoutes);
 app.use('/api/expenses', expenseRoutes);
 app.use('/expenses', expenseRoutes);
+app.use('/api/incomes', incomeRoutes);
+app.use('/incomes', incomeRoutes);
+app.use('/api/admin/users', adminRoutes);
 
 app.get('/api/health', (_, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });

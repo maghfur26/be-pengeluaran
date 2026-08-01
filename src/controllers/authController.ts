@@ -2,6 +2,13 @@ import { Request, Response } from 'express';
 import User from '../models/User';
 import { signToken, AuthRequest } from '../middleware/auth';
 
+const toUserJson = (user: any) => ({
+  id: user.id,
+  name: user.name,
+  email: user.email,
+  role: user.role
+});
+
 // Register
 export const register = async (req: Request, res: Response): Promise<void> => {
   try {
@@ -18,7 +25,7 @@ export const register = async (req: Request, res: Response): Promise<void> => {
 
     res.status(201).json({
       success: true,
-      data: { token, user: { id: user.id, name: user.name, email: user.email } },
+      data: { token, user: toUserJson(user) },
       message: 'Registrasi berhasil'
     });
   } catch (error: any) {
@@ -54,11 +61,14 @@ export const login = async (req: Request, res: Response): Promise<void> => {
       return;
     }
 
+    user.lastActive = new Date();
+    await user.save();
+
     const token = signToken(user.id);
 
     res.json({
       success: true,
-      data: { token, user: { id: user.id, name: user.name, email: user.email } },
+      data: { token, user: toUserJson(user) },
       message: 'Login berhasil'
     });
   } catch (error) {
@@ -78,7 +88,7 @@ export const getMe = async (req: AuthRequest, res: Response): Promise<void> => {
 
     res.json({
       success: true,
-      data: { user: { id: user.id, name: user.name, email: user.email } }
+      data: { user: toUserJson(user) }
     });
   } catch (error) {
     console.error(error);
