@@ -1,13 +1,17 @@
 import { Response } from 'express';
+import mongoose from 'mongoose';
 import Expense from '../models/Expense';
 import { AuthRequest } from '../middleware/auth';
+
+const getUserId = (req: AuthRequest): mongoose.Types.ObjectId =>
+  new mongoose.Types.ObjectId(req.userId as string);
 
 // Get all expenses with optional filtering
 export const getExpenses = async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     const { category, startDate, endDate, search } = req.query;
     
-    const filter: any = { userId: req.userId };
+    const filter: any = { userId: getUserId(req) };
     
     if (category) {
       filter.category = category;
@@ -42,7 +46,7 @@ export const getExpenses = async (req: AuthRequest, res: Response): Promise<void
 // Get single expense
 export const getExpense = async (req: AuthRequest, res: Response): Promise<void> => {
   try {
-    const expense = await Expense.findOne({ _id: req.params.id, userId: req.userId });
+    const expense = await Expense.findOne({ _id: req.params.id, userId: getUserId(req) });
     
     if (!expense) {
       res.status(404).json({ 
@@ -68,7 +72,7 @@ export const createExpense = async (req: AuthRequest, res: Response): Promise<vo
     const { description, amount, category, date, notes } = req.body;
     
     const expense = await Expense.create({
-      userId: req.userId,
+      userId: getUserId(req),
       description,
       amount,
       category,
@@ -102,7 +106,7 @@ export const createExpense = async (req: AuthRequest, res: Response): Promise<vo
 export const updateExpense = async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     const expense = await Expense.findOneAndUpdate(
-      { _id: req.params.id, userId: req.userId },
+      { _id: req.params.id, userId: getUserId(req) },
       req.body,
       { new: true, runValidators: true }
     );
@@ -140,7 +144,7 @@ export const updateExpense = async (req: AuthRequest, res: Response): Promise<vo
 // Delete expense
 export const deleteExpense = async (req: AuthRequest, res: Response): Promise<void> => {
   try {
-    const expense = await Expense.findOneAndDelete({ _id: req.params.id, userId: req.userId });
+    const expense = await Expense.findOneAndDelete({ _id: req.params.id, userId: getUserId(req) });
     
     if (!expense) {
       res.status(404).json({ 
@@ -167,7 +171,7 @@ export const deleteExpense = async (req: AuthRequest, res: Response): Promise<vo
 export const getMonthlyExpenses = async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     const { year } = req.query;
-    const matchFilter: any = { userId: req.userId };
+    const matchFilter: any = { userId: getUserId(req) };
 
     if (year) {
       const startOfYear = new Date(`${year}-01-01`);
@@ -226,7 +230,7 @@ export const getDailyExpenses = async (req: AuthRequest, res: Response): Promise
     nextMonth.setMonth(nextMonth.getMonth() + 1);
 
     const daily = await Expense.aggregate([
-      { $match: { userId: req.userId, date: { $gte: startDate, $lt: nextMonth } } },
+      { $match: { userId: getUserId(req), date: { $gte: startDate, $lt: nextMonth } } },
       {
         $group: {
           _id: { $dayOfMonth: '$date' },
@@ -263,7 +267,7 @@ export const getExpenseSummary = async (req: AuthRequest, res: Response): Promis
   try {
     const { startDate, endDate } = req.query;
     
-    const matchFilter: any = { userId: req.userId };
+    const matchFilter: any = { userId: getUserId(req) };
     if (startDate || endDate) {
       matchFilter.date = {};
       if (startDate) matchFilter.date.$gte = new Date(startDate as string);
