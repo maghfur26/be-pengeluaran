@@ -1,22 +1,35 @@
 import mongoose from 'mongoose';
 
-let cached = global as typeof globalThis & {
-  mongooseConn: typeof mongoose | null;
-};
+const cached = (global as { mongoose?: { conn: typeof mongoose | null; promise: Promise<typeof mongoose> | null } }).mongoose ?? { conn: null, promise: null };
 
-if (!cached.mongooseConn) {
-  cached.mongooseConn = null;
+if (!(global as { mongoose?: unknown }).mongoose) {
+  (global as { mongoose?: unknown }).mongoose = cached;
 }
 
-const connectDB = async (): Promise<typeof mongoose> => {
-  if (cached.mongooseConn) {
-    return cached.mongooseConn;
+async function connectDB(): Promise<typeof mongoose> {
+  if (cached.conn) {
+    return cached.conn;
   }
 
-  const conn = await mongoose.connect(process.env.MONGODB_URI || '');
-  cached.mongooseConn = conn;
-  console.log(`MongoDB connected: ${conn.connection.host}`);
-  return conn;
-};
+  if (!cached.promise) {
+    cached.promise = mongoose
+      .connect(process.env.MONGODB_URI || '', {
+        serverSelectionTimeoutMS: 15000,
+        bufferCommands: false
+      })
+      .then((m) => {
+        console.log(`MongoDB connected: ${m.connection.host}`);
+        return m;
+      })
+      .catch((err) => {
+        console.error('MongoDB connection error:', err);
+        cached.promise = null;
+        throw err;
+      });
+  }
+
+  cached.conn = await cached.promise;
+  return cached.conn;
+}
 
 export default connectDB;

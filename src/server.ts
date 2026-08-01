@@ -8,10 +8,17 @@ dotenv.config();
 
 const app = express();
 
-const allowedOrigins = (process.env.FRONTEND_URL || 'http://localhost:5173,https://pengeluaran-harian-nu.vercel.app')
+const defaultOrigins = [
+  'http://localhost:5173',
+  'https://pengeluaran-harian-nu.vercel.app'
+];
+
+const envOrigins = (process.env.FRONTEND_URL || '')
   .split(',')
   .map((origin) => origin.trim())
   .filter(Boolean);
+
+const allowedOrigins = [...new Set([...defaultOrigins, ...envOrigins])];
 
 app.use(cors({
   origin: allowedOrigins,

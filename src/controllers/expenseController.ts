@@ -30,6 +30,7 @@ export const getExpenses = async (req: Request, res: Response): Promise<void> =>
       count: expenses.length
     });
   } catch (error) {
+    console.error(error);
     res.status(500).json({ 
       success: false, 
       message: 'Gagal mengambil data pengeluaran' 
@@ -52,6 +53,7 @@ export const getExpense = async (req: Request, res: Response): Promise<void> => 
     
     res.json({ success: true, data: expense });
   } catch (error) {
+    console.error(error);
     res.status(500).json({ 
       success: false, 
       message: 'Gagal mengambil data pengeluaran' 
@@ -78,6 +80,7 @@ export const createExpense = async (req: Request, res: Response): Promise<void> 
       message: 'Pengeluaran berhasil ditambahkan' 
     });
   } catch (error: any) {
+    console.error(error);
     if (error.name === 'ValidationError') {
       const messages = Object.values(error.errors).map((err: any) => err.message);
       res.status(400).json({ 
@@ -116,6 +119,7 @@ export const updateExpense = async (req: Request, res: Response): Promise<void> 
       message: 'Pengeluaran berhasil diupdate' 
     });
   } catch (error: any) {
+    console.error(error);
     if (error.name === 'ValidationError') {
       const messages = Object.values(error.errors).map((err: any) => err.message);
       res.status(400).json({ 
@@ -149,6 +153,7 @@ export const deleteExpense = async (req: Request, res: Response): Promise<void> 
       message: 'Pengeluaran berhasil dihapus' 
     });
   } catch (error) {
+    console.error(error);
     res.status(500).json({ 
       success: false, 
       message: 'Gagal menghapus pengeluaran' 
@@ -193,6 +198,7 @@ export const getMonthlyExpenses = async (req: Request, res: Response): Promise<v
 
     res.json({ success: true, data: result });
   } catch (error) {
+    console.error(error);
     res.status(500).json({
       success: false,
       message: 'Gagal mengambil data pengeluaran bulanan'
@@ -242,6 +248,7 @@ export const getDailyExpenses = async (req: Request, res: Response): Promise<voi
 
     res.json({ success: true, data: result });
   } catch (error) {
+    console.error(error);
     res.status(500).json({
       success: false,
       message: 'Gagal mengambil data pengeluaran harian'
@@ -283,6 +290,7 @@ export const getExpenseSummary = async (req: Request, res: Response): Promise<vo
       }
     });
   } catch (error) {
+    console.error(error);
     res.status(500).json({ 
       success: false, 
       message: 'Gagal mengambil ringkasan pengeluaran' 
