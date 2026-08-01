@@ -2,6 +2,7 @@ import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import connectDB from './config/database';
+import authRoutes from './routes/authRoutes';
 import expenseRoutes from './routes/expenseRoutes';
 
 dotenv.config();
@@ -40,6 +41,7 @@ app.use(async (req, res, next) => {
   }
 });
 
+app.use('/api/auth', authRoutes);
 app.use('/api/expenses', expenseRoutes);
 app.use('/expenses', expenseRoutes);
 

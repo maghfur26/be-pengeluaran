@@ -1,4 +1,5 @@
 import { Router } from 'express';
+import { authMiddleware } from '../middleware/auth';
 import {
   getExpenses,
   getExpense,
@@ -11,6 +12,8 @@ import {
 } from '../controllers/expenseController';
 
 const router = Router();
+
+router.use(authMiddleware);
 
 // GET /api/expenses - Get all expenses
 router.get('/', getExpenses);

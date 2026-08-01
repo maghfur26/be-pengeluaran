@@ -1,12 +1,13 @@
-import { Request, Response } from 'express';
+import { Response } from 'express';
 import Expense from '../models/Expense';
+import { AuthRequest } from '../middleware/auth';
 
 // Get all expenses with optional filtering
-export const getExpenses = async (req: Request, res: Response): Promise<void> => {
+export const getExpenses = async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     const { category, startDate, endDate, search } = req.query;
     
-    const filter: any = {};
+    const filter: any = { userId: req.userId };
     
     if (category) {
       filter.category = category;
@@ -39,9 +40,9 @@ export const getExpenses = async (req: Request, res: Response): Promise<void> =>
 };
 
 // Get single expense
-export const getExpense = async (req: Request, res: Response): Promise<void> => {
+export const getExpense = async (req: AuthRequest, res: Response): Promise<void> => {
   try {
-    const expense = await Expense.findById(req.params.id);
+    const expense = await Expense.findOne({ _id: req.params.id, userId: req.userId });
     
     if (!expense) {
       res.status(404).json({ 
@@ -62,11 +63,12 @@ export const getExpense = async (req: Request, res: Response): Promise<void> => 
 };
 
 // Create expense
-export const createExpense = async (req: Request, res: Response): Promise<void> => {
+export const createExpense = async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     const { description, amount, category, date, notes } = req.body;
     
     const expense = await Expense.create({
+      userId: req.userId,
       description,
       amount,
       category,
@@ -97,10 +99,10 @@ export const createExpense = async (req: Request, res: Response): Promise<void> 
 };
 
 // Update expense
-export const updateExpense = async (req: Request, res: Response): Promise<void> => {
+export const updateExpense = async (req: AuthRequest, res: Response): Promise<void> => {
   try {
-    const expense = await Expense.findByIdAndUpdate(
-      req.params.id,
+    const expense = await Expense.findOneAndUpdate(
+      { _id: req.params.id, userId: req.userId },
       req.body,
       { new: true, runValidators: true }
     );
@@ -136,9 +138,9 @@ export const updateExpense = async (req: Request, res: Response): Promise<void> 
 };
 
 // Delete expense
-export const deleteExpense = async (req: Request, res: Response): Promise<void> => {
+export const deleteExpense = async (req: AuthRequest, res: Response): Promise<void> => {
   try {
-    const expense = await Expense.findByIdAndDelete(req.params.id);
+    const expense = await Expense.findOneAndDelete({ _id: req.params.id, userId: req.userId });
     
     if (!expense) {
       res.status(404).json({ 
@@ -162,10 +164,10 @@ export const deleteExpense = async (req: Request, res: Response): Promise<void> 
 };
 
 // Get monthly expenses (for chart)
-export const getMonthlyExpenses = async (req: Request, res: Response): Promise<void> => {
+export const getMonthlyExpenses = async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     const { year } = req.query;
-    const matchFilter: any = {};
+    const matchFilter: any = { userId: req.userId };
 
     if (year) {
       const startOfYear = new Date(`${year}-01-01`);
@@ -207,7 +209,7 @@ export const getMonthlyExpenses = async (req: Request, res: Response): Promise<v
 };
 
 // Get daily expenses for a specific month (for detailed view)
-export const getDailyExpenses = async (req: Request, res: Response): Promise<void> => {
+export const getDailyExpenses = async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     const { year, month } = req.query;
 
@@ -224,7 +226,7 @@ export const getDailyExpenses = async (req: Request, res: Response): Promise<voi
     nextMonth.setMonth(nextMonth.getMonth() + 1);
 
     const daily = await Expense.aggregate([
-      { $match: { date: { $gte: startDate, $lt: nextMonth } } },
+      { $match: { userId: req.userId, date: { $gte: startDate, $lt: nextMonth } } },
       {
         $group: {
           _id: { $dayOfMonth: '$date' },
@@ -257,11 +259,11 @@ export const getDailyExpenses = async (req: Request, res: Response): Promise<voi
 };
 
 // Get expense summary by category
-export const getExpenseSummary = async (req: Request, res: Response): Promise<void> => {
+export const getExpenseSummary = async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     const { startDate, endDate } = req.query;
     
-    const matchFilter: any = {};
+    const matchFilter: any = { userId: req.userId };
     if (startDate || endDate) {
       matchFilter.date = {};
       if (startDate) matchFilter.date.$gte = new Date(startDate as string);
