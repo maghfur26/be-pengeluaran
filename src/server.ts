@@ -31,9 +31,11 @@ app.use(async (req, res, next) => {
     await connectDB();
     next();
   } catch (error) {
+    console.error(error);
     res.status(500).json({
       success: false,
-      message: 'Gagal terhubung ke database. Pastikan MONGODB_URI sudah diset.'
+      message: 'Gagal terhubung ke database. Pastikan MONGODB_URI sudah diset.',
+      detail: (error as Error).message
     });
   }
 });
