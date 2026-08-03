@@ -16,7 +16,7 @@ export const getExpenses = async (req: AuthRequest, res: Response): Promise<void
     if (startDate || endDate) {
       filter.date = {};
       if (startDate) filter.date.$gte = new Date(startDate as string);
-      if (endDate) filter.date.$lte = new Date(endDate as string);
+      if (endDate) filter.date.$lte = new Date(`${endDate}T23:59:59.999Z`);
     }
     
     if (search) {
@@ -267,7 +267,7 @@ export const getExpenseSummary = async (req: AuthRequest, res: Response): Promis
     if (startDate || endDate) {
       matchFilter.date = {};
       if (startDate) matchFilter.date.$gte = new Date(startDate as string);
-      if (endDate) matchFilter.date.$lte = new Date(endDate as string);
+      if (endDate) matchFilter.date.$lte = new Date(`${endDate}T23:59:59.999Z`);
     }
     
     const summary = await Expense.aggregate([
